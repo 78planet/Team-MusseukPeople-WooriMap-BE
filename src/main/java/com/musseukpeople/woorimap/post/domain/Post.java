@@ -1,7 +1,9 @@
 package com.musseukpeople.woorimap.post.domain;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Embedded;
@@ -46,10 +48,10 @@ public class Post extends BaseEntity {
     private GPSCoordinates gpsCoordinates;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private final List<PostImage> postImages = new ArrayList<>();
+    private List<PostImage> postImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private final List<PostTag> postTags = new ArrayList<>();
+    private List<PostTag> postTags = new ArrayList<>();
 
     @Builder
     public Post(Long id, Couple couple, String title, String content,
@@ -62,6 +64,26 @@ public class Post extends BaseEntity {
         this.gpsCoordinates = gpsCoordinates;
         addPostImages(postImages);
         addPostTags(postTags);
+    }
+
+    public void changeTitle(String title) {
+        this.title = title;
+    }
+
+    public void changeContent(String content) {
+        this.content = content;
+    }
+
+    public void changeGpsCoordinates(BigDecimal latitude, BigDecimal longitude) {
+        this.gpsCoordinates = new GPSCoordinates(latitude, longitude);
+    }
+
+    public void changePostImages(List<String> imageUrls) {
+        this.postImages = toPostImages(imageUrls);
+    }
+
+    public void changePostTags(List<PostTag> postTags) {
+        this.postTags = postTags;
     }
 
     public void addPostImages(List<PostImage> postImages) {
@@ -80,5 +102,9 @@ public class Post extends BaseEntity {
     public void addPostTag(PostTag postTags) {
         postTags.setPost(this);
         this.getPostTags().add(postTags);
+    }
+
+    public List<PostImage> toPostImages(List<String> imageUrls) {
+        return imageUrls.stream().map(PostImage::new).collect(Collectors.toList());
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.musseukpeople.woorimap.couple.application.CoupleService;
 import com.musseukpeople.woorimap.member.domain.Member;
+import com.musseukpeople.woorimap.post.application.dto.EditPostRequest;
 import com.musseukpeople.woorimap.post.domain.Post;
 import com.musseukpeople.woorimap.post.domain.PostRepository;
 import com.musseukpeople.woorimap.tag.application.TagService;
@@ -96,11 +97,60 @@ public class PostServiceTest {
         );
     }
 
+    @DisplayName("post 수정 성공")
+    @Test
+    void updatePost_success() {
+        // given
+        Couple couple = createCouple();
+        CreatePostRequest createPostRequest = getCreatePostRequest();
+
+        List<Tag> tagOfPost = createTag(couple, createPostRequest.getTags());
+        Long savedPostId = createPost(couple, createPostRequest, tagOfPost);
+
+        // when
+        EditPostRequest editPostRequest = getEditPostRequest(savedPostId);
+
+        List<Tag> tagOfPostForEdit = createTag(couple, editPostRequest.getTags());
+
+        postService.modifyPost(editPostRequest, tagOfPostForEdit);
+
+        // then
+        Post postModified = postRepository.findById(savedPostId).get();
+
+        assertAll(
+            () -> assertThat(postModified.getPostTags()).hasSize(tagOfPostForEdit.size()),
+            () -> assertThat(postModified.getPostTags().get(0).getPost().getId()).isEqualTo(savedPostId),
+            () -> assertThat(postModified.getPostImages()).hasSize(editPostRequest.getImageUrls().size()),
+            () -> assertThat(postModified.getPostImages().get(0).getPost().getId()).isEqualTo(savedPostId),
+            () -> assertThat(postModified.getGpsCoordinates().getLongitude()).isEqualTo(editPostRequest.getLongitude()),
+            () -> assertThat(postModified.getGpsCoordinates().getLatitude()).isEqualTo(editPostRequest.getLatitude())
+        );
+    }
+
+    private EditPostRequest getEditPostRequest(Long postId) {
+        List<String> sampleImagePaths = List.of("http://wooriemap.aws.com/2.jpg");
+        List<TagRequest> sampleTags = List.of(
+            new TagRequest("seoul", "#F000000"),
+            new TagRequest("jeju", "F000000"),
+            new TagRequest("good", "F000000")
+        );
+
+        return EditPostRequest.builder()
+            .id(postId)
+            .title("첫 이야기-2")
+            .content("<h1>22첫 이야기.... </h1>")
+            .imageUrls(sampleImagePaths)
+            .tags(sampleTags)
+            .latitude(new BigDecimal("33.12312321"))
+            .longitude(new BigDecimal("444.3123121"))
+            .build();
+    }
+
     private CreatePostRequest getCreatePostRequest() {
         List<String> sampleImagePaths = List.of("http://wooriemap.aws.com/1.jpg", "http://wooriemap.aws.com/2.jpg");
         List<TagRequest> sampleTags = List.of(new TagRequest("seoul", "#F000000"), new TagRequest("cafe", "F000000"));
 
-        CreatePostRequest createPostRequest = CreatePostRequest.builder()
+        return CreatePostRequest.builder()
             .title("첫 이야기")
             .content("<h1>첫 이야기.... </h1>")
             .imageUrls(sampleImagePaths)
@@ -108,8 +158,6 @@ public class PostServiceTest {
             .latitude(new BigDecimal("12.12312321"))
             .longitude(new BigDecimal("122.3123121"))
             .build();
-
-        return createPostRequest;
     }
 
     private Couple createCouple() {

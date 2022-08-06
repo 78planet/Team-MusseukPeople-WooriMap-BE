@@ -15,13 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.musseukpeople.woorimap.couple.application.CoupleService;
 import com.musseukpeople.woorimap.member.domain.Member;
-import com.musseukpeople.woorimap.post.application.dto.EditPostRequest;
+import com.musseukpeople.woorimap.post.application.request.EditPostRequest;
 import com.musseukpeople.woorimap.post.domain.Post;
 import com.musseukpeople.woorimap.post.domain.PostRepository;
 import com.musseukpeople.woorimap.tag.application.TagService;
 import com.musseukpeople.woorimap.tag.application.dto.TagRequest;
 import com.musseukpeople.woorimap.couple.domain.Couple;
-import com.musseukpeople.woorimap.post.application.dto.CreatePostRequest;
+import com.musseukpeople.woorimap.post.application.request.CreatePostRequest;
 import com.musseukpeople.woorimap.tag.domain.Tag;
 import com.musseukpeople.woorimap.util.fixture.TMemberBuilder;
 
@@ -56,6 +56,34 @@ public class PostServiceTest {
 
         // then
         assertThat(postId).isPositive();
+    }
+
+    @DisplayName("post 수정 성공")
+    @Transactional
+    @Test
+    void modifyPost_success() {
+        // given
+        Long coupleId = createCouple().getId();
+        CreatePostRequest createPostRequest = getCreatePostRequest();
+        Long postId = postFacade.createPost(coupleId, createPostRequest);
+        EditPostRequest editPostRequest = getEditPostRequest(postId);
+
+        // when
+        Long postIdModified = postFacade.modifyPost(coupleId, editPostRequest);
+
+        // then
+        Post postModified = postRepository.findById(postId).get();
+
+        assertAll(
+            () -> assertThat(postId).isEqualTo(postIdModified),
+            () -> assertThat(postModified.getTitle()).isEqualTo(editPostRequest.getTitle()),
+            () -> assertThat(postModified.getContent()).isEqualTo(editPostRequest.getContent()),
+            () -> assertThat(postModified.getPostTags().get(0).getPost().getId()).isEqualTo(postId),
+            () -> assertThat(postModified.getPostImages()).hasSize(editPostRequest.getImageUrls().size()),
+            () -> assertThat(postModified.getPostImages().get(0).getPost().getId()).isEqualTo(postId),
+            () -> assertThat(postModified.getGpsCoordinates().getLongitude()).isEqualTo(editPostRequest.getLongitude()),
+            () -> assertThat(postModified.getGpsCoordinates().getLatitude()).isEqualTo(editPostRequest.getLatitude())
+        );
     }
 
     @DisplayName("tag 생성 성공")
@@ -97,36 +125,6 @@ public class PostServiceTest {
         );
     }
 
-    @DisplayName("post 수정 성공")
-    @Test
-    void updatePost_success() {
-        // given
-        Couple couple = createCouple();
-        CreatePostRequest createPostRequest = getCreatePostRequest();
-
-        List<Tag> tagOfPost = createTag(couple, createPostRequest.getTags());
-        Long savedPostId = createPost(couple, createPostRequest, tagOfPost);
-
-        // when
-        EditPostRequest editPostRequest = getEditPostRequest(savedPostId);
-
-        List<Tag> tagOfPostForEdit = createTag(couple, editPostRequest.getTags());
-
-        postService.modifyPost(editPostRequest, tagOfPostForEdit);
-
-        // then
-        Post postModified = postRepository.findById(savedPostId).get();
-
-        assertAll(
-            () -> assertThat(postModified.getPostTags()).hasSize(tagOfPostForEdit.size()),
-            () -> assertThat(postModified.getPostTags().get(0).getPost().getId()).isEqualTo(savedPostId),
-            () -> assertThat(postModified.getPostImages()).hasSize(editPostRequest.getImageUrls().size()),
-            () -> assertThat(postModified.getPostImages().get(0).getPost().getId()).isEqualTo(savedPostId),
-            () -> assertThat(postModified.getGpsCoordinates().getLongitude()).isEqualTo(editPostRequest.getLongitude()),
-            () -> assertThat(postModified.getGpsCoordinates().getLatitude()).isEqualTo(editPostRequest.getLatitude())
-        );
-    }
-
     private EditPostRequest getEditPostRequest(Long postId) {
         List<String> sampleImagePaths = List.of("http://wooriemap.aws.com/2.jpg");
         List<TagRequest> sampleTags = List.of(
@@ -147,8 +145,14 @@ public class PostServiceTest {
     }
 
     private CreatePostRequest getCreatePostRequest() {
-        List<String> sampleImagePaths = List.of("http://wooriemap.aws.com/1.jpg", "http://wooriemap.aws.com/2.jpg");
-        List<TagRequest> sampleTags = List.of(new TagRequest("seoul", "#F000000"), new TagRequest("cafe", "F000000"));
+        List<String> sampleImagePaths = List.of(
+            "http://wooriemap.aws.com/1.jpg",
+            "http://wooriemap.aws.com/2.jpg"
+        );
+        List<TagRequest> sampleTags = List.of(
+            new TagRequest("seoul", "#F000000"),
+            new TagRequest("cafe", "F000000")
+        );
 
         return CreatePostRequest.builder()
             .title("첫 이야기")

@@ -15,8 +15,8 @@ import com.musseukpeople.woorimap.auth.domain.login.Login;
 import com.musseukpeople.woorimap.auth.domain.login.LoginMember;
 import com.musseukpeople.woorimap.common.model.ApiResponse;
 import com.musseukpeople.woorimap.post.application.PostFacade;
-import com.musseukpeople.woorimap.post.application.dto.CreatePostRequest;
-import com.musseukpeople.woorimap.post.application.dto.EditPostRequest;
+import com.musseukpeople.woorimap.post.application.request.CreatePostRequest;
+import com.musseukpeople.woorimap.post.application.request.EditPostRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "게시글", description = "게시글 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/post")
+@RequestMapping("/api/couples/posts")
 public class PostController {
 
     private final PostFacade postFacade;
@@ -43,10 +43,9 @@ public class PostController {
     @Operation(summary = "게시글 수정", description = "게시글 수정 API입니다.")
     @OnlyCouple
     @PutMapping
-    public ResponseEntity<ApiResponse<String>> updatePost(@Valid @RequestBody EditPostRequest updatePostRequest,
+    public ResponseEntity<ApiResponse<String>> modifyPost(@Valid @RequestBody EditPostRequest updatePostRequest,
                                                           @Login LoginMember member) {
-        Long coupleId = member.getCoupleId();
-        Long modifiedPostId = postFacade.modifyPost(coupleId, updatePostRequest);
-        return ResponseEntity.created(URI.create("/post/" + modifiedPostId)).build();
+        postFacade.modifyPost(member.getCoupleId(), updatePostRequest);
+        return ResponseEntity.ok().build();
     }
 }

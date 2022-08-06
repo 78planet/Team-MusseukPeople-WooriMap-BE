@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.musseukpeople.woorimap.common.exception.ErrorCode;
 import com.musseukpeople.woorimap.couple.domain.Couple;
-import com.musseukpeople.woorimap.post.application.dto.CreatePostRequest;
-import com.musseukpeople.woorimap.post.application.dto.EditPostRequest;
+import com.musseukpeople.woorimap.post.application.request.CreatePostRequest;
+import com.musseukpeople.woorimap.post.application.request.EditPostRequest;
 import com.musseukpeople.woorimap.post.domain.Post;
 import com.musseukpeople.woorimap.post.domain.PostRepository;
 import com.musseukpeople.woorimap.post.domain.PostTag;

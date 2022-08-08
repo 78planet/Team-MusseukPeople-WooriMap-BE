@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import com.musseukpeople.woorimap.member.application.dto.request.SignupRequest;
-import com.musseukpeople.woorimap.post.application.dto.CreatePostRequest;
+import com.musseukpeople.woorimap.post.application.dto.request.CreatePostRequest;
 import com.musseukpeople.woorimap.tag.application.dto.request.TagRequest;
 import com.musseukpeople.woorimap.util.AcceptanceTest;
 
@@ -41,6 +41,24 @@ class PostControllerTest extends AcceptanceTest {
         // when
         MockHttpServletResponse response = 게시글_작성(coupleAccessToken, createRequest);
 
+        // then
+        assertAll(
+            () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value()),
+            () -> assertThat(response.getHeader(HttpHeaders.LOCATION)).isNotNull()
+        );
+    }
+
+    @DisplayName("post 조회 완료")
+    @Test
+    void show_post_success() throws Exception {
+        // given
+        CreatePostRequest createRequest = createPostRequest();
+        MockHttpServletResponse response = 게시글_작성(coupleAccessToken, createRequest);
+
+        // when
+        MockHttpServletResponse showResponse = 게시글_조회(coupleAccessToken, 1L);
+
+        System.out.println(showResponse.getContentAsString());
         // then
         assertAll(
             () -> assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value()),

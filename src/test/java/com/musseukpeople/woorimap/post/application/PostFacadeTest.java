@@ -18,8 +18,8 @@ import com.musseukpeople.woorimap.couple.domain.CoupleRepository;
 import com.musseukpeople.woorimap.couple.domain.vo.CoupleMembers;
 import com.musseukpeople.woorimap.member.domain.Member;
 import com.musseukpeople.woorimap.member.domain.MemberRepository;
-import com.musseukpeople.woorimap.post.application.dto.CreatePostRequest;
-import com.musseukpeople.woorimap.post.application.dto.EditPostRequest;
+import com.musseukpeople.woorimap.post.application.dto.request.CreatePostRequest;
+import com.musseukpeople.woorimap.post.application.dto.request.EditPostRequest;
 import com.musseukpeople.woorimap.post.domain.Post;
 import com.musseukpeople.woorimap.post.domain.PostRepository;
 import com.musseukpeople.woorimap.tag.application.dto.request.TagRequest;
@@ -109,6 +109,17 @@ class PostFacadeTest extends IntegrationTest {
             () -> assertThat(post.getLocation().getLongitude()).isEqualTo(editRequest.getLongitude()),
             () -> assertThat(post.getLocation().getLatitude()).isEqualTo(editRequest.getLatitude())
         );
+    }
+
+    @DisplayName("querydsl tets")
+    @Transactional
+    @Test
+    void querydsl_test() {
+        CreatePostRequest request = createPostRequest();
+        Long postId = postFacade.createPost(coupleId, request);
+
+        Post post = postRepository.findPostById(postId);
+        System.out.println(post);
     }
 
     private EditPostRequest editPostRequest() {
